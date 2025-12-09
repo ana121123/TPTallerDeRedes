@@ -1,0 +1,24 @@
+upstream backends {
+    #backend1
+    server 10.1.10.26:88;
+    #backend2
+    server 10.1.10.199:88;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    access_log /var/log/nginx/reverse-access.log;  
+    error_log /var/log/nginx/reverse-error.log;
+    
+    # 1. Web local del Router A
+    location / {
+        root /var/www/html;
+        index index.html;
+    }
+
+    # 2. Proxy hacia los Backends
+    location /intranet/ {
+        proxy_pass http://backends/;
+    }
+}
