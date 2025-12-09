@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router A - Web Pública</title>
+    <style>
+        /* Importar fuentes */
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;500;600&display=swap');
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            /* Fondo degradado consistente con los backends */
+            background: linear-gradient(135deg, #ffe6fa 0%, #ffccec 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 3rem 4rem;
+            border-radius: 25px;
+            /* Sombra suave y borde fucsia */
+            box-shadow: 0 10px 25px rgba(255, 105, 180, 0.25);
+            border: 3px solid #ff69b4; /* Fucsia vibrante */
+            max-width: 500px;
+        }
+
+        h1.titulo-router {
+            font-family: 'Pacifico', cursive;
+            color: #db0072; /* Fucsia oscuro */
+            font-size: 3.5rem;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(219, 0, 114, 0.15);
+        }
+
+        .subtitulo {
+            color: #ff69b4;
+            font-size: 1.2rem;
+            margin-top: 0.5rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .decoracion {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Estilo del botón para ir a la intranet */
+        .btn-intranet {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff69b4, #db0072);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(219, 0, 114, 0.3);
+            transition: all 0.3s ease;
+            border: 2px solid white;
+        }
+
+        .btn-intranet:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(219, 0, 114, 0.4);
+            background: linear-gradient(45deg, #db0072, #ff69b4);
+        }
+
+        .footer-heart {
+            margin-top: 2.5rem;
+            color: #db0072;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="decoracion">🌸✨🌸</div>
+        <h1 class="titulo-router">Router A</h1>
+        <p class="subtitulo">Portal de Acceso Público</p>
+        
+        <p style="color: #666; margin-bottom: 2rem;">
+            Bienvenido a nuestra infraestructura en la nube. <br>
+            El acceso a los servidores privados es restringido.
+        </p>
+
+        <a href="/intranet/" class="btn-intranet">
+            Ir a la Intranet Privada 🌸
+        </a>
+
+        <div class="footer-heart">
+            Karen Oggier y Ana Ramos Bonvin <br>
+            <span style="font-size: 0.8rem;">TP Final Redes 2025</span>
+        </div>
+    </div>
+
+</body>
+</html>

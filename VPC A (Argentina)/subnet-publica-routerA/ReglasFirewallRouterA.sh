@@ -26,7 +26,7 @@ iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 # Permitir SSH desde cualquier origen
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 # PROXY REVERSO - Permitir HTTP para el Nginx Reverse Proxy
-iptables -A INPUT -p tcp --dport 88 -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 # ICMP - Responder ping
 iptables -A INPUT -p icmp -j ACCEPT
 
