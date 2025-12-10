@@ -28,7 +28,8 @@ iptables -A OUTPUT -p tcp --dport 53 -j ACCEPT
 ## HHTP Y HHTPS
 iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
 iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT
-
+## ICMP
+#iptables -A OUTPUT -p icmp -j ACCEPT # por el momento
 
 #------------POLITICAS POR DEFECTO---------------
 # Bloquear todo por defecto (DROP)
