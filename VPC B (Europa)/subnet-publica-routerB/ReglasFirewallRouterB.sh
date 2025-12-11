@@ -25,7 +25,7 @@ iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 #------------REGLAS DE ENTRADA (INPUT)---------------
 # Permitir SSH desde cualquier origen
 iptables -A INPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p tcp --sport 1024:65535 --dport 22 -m state --state NEW -j ACCEPT
-# ICMP - Responder ping
+# ICMP - Permitir ping
 iptables -A INPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
 
 #------------REGLAS DE SALIDA (OUTPUT)---------------

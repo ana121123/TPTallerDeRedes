@@ -27,7 +27,7 @@ iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p tcp --sport 1024:65535 --dport 22 -m state --state NEW -j ACCEPT
 # PROXY REVERSO - Permitir HTTP para el Nginx Reverse Proxy
 iptables -A INPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p tcp --sport 1024:65535 --dport 80 -m state --state NEW -j ACCEPT
-# ICMP - Responder ping
+# ICMP - Permitir ping
 iptables -A INPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
 
 #------------REGLAS DE SALIDA (OUTPUT)---------------
@@ -46,7 +46,7 @@ iptables -A OUTPUT -s 0.0.0.0/0 -d 10.1.0.0/16 -p tcp --sport 1024:65535 --dport
 
 #------------REGLAS DE FORWARDING Y NAT---------------
 # MASQUERADE
-iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o ens5 ! -d 10.1.0.0/16 -j MASQUERADE
 # FORWARDING - Permitir forwarding desde la Subnet Privada backends (10.1.10.0/24)
 iptables -A FORWARD -i ens5 -o ens5 -s 10.1.10.0/24 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
 # FORWARDING - Permitir forwarding desde la Subnet Privada bdd (10.1.20.0/24)
