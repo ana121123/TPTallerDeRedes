@@ -54,6 +54,23 @@ iptables -A FORWARD -i ens5 -o ens5 -s 10.1.20.0/24 -d 0.0.0.0/0 -m state --stat
 # Permitir Ping pasante (entre VPCs o internet)
 iptables -A FORWARD -p icmp --icmp-type 8 -m state --state NEW,ESTABLISHED -j ACCEPT
 
+#------------REGLAS DE WIREGUARD---------------
+## Permitir tráfico UDP en el puerto 51820
+iptables -A INPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p udp --sport 1024:65535 --dport 51820 -m state --state NEW -j ACCEPT
+iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p udp --sport 51820 --dport 51820 -m state --state NEW -j ACCEPT
+
+## Permitir tráfico en la interfaz del tunel (wg0)
+# Aceptamos todo lo que venga del túnel destinado al router o a forward
+iptables -A INPUT -i wg0 -j ACCEPT
+iptables -A OUTPUT -o wg0 -j ACCEPT
+
+## Forwarding entre la VPC local y la remota a tevés del tunel
+# Permitir paso de paquetes desde la interfaz wg0 hacia la red interna
+iptables -A FORWARD -i wg0 -j ACCEPT
+# Permitir paso de paquetes desde la red interna hacia la interfaz wg0
+iptables -A FORWARD -o wg0 -j ACCEPT
+
+
 #------------POLITICAS POR DEFECTO---------------
 # Bloquear todo por defecto (DROP)
 iptables -P INPUT DROP
