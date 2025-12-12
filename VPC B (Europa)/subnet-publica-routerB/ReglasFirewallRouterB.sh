@@ -44,6 +44,17 @@ iptables -A OUTPUT -s 0.0.0.0/0 -d 10.2.0.0/16 -p tcp --sport 1024:65535 --dport
 # MASQUERADE
 iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
 # FORWARDING - Permitir forwarding desde las Subnets Privadas de VPC B (10.2.0.0/16)
+# iptables -A FORWARD -s 10.2.0.0/16 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
+
+##SEGURIDAD PROXY SQUID
+# 1. PERMITIR: VPC A (vía túnel) hacia el Proxy (IP 10.2.20.91)
+# Esta es la regla que permite pasar a los que vienen de Argentina
+iptables -A FORWARD -i wg0 -d 10.2.20.91 -p tcp --dport 3128 -j ACCEPT
+# 2. BLOQUEAR: Cualquier otro intento de ir al Proxy (Puerto 3128)
+# Esto evita que la VPC B (o cualquiera en la LAN) use el proxy.
+iptables -A FORWARD -d 10.2.20.91 -p tcp --dport 3128 -j DROP
+
+# Permitir forwarding general desde VPC B hacia Internet (Salvo al proxy que ya bloqueamos arriba)
 iptables -A FORWARD -s 10.2.0.0/16 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
 
 #------------REGLAS DE WIREGUARD---------------
