@@ -1,2 +1,2 @@
 www.santafe.gov.ar 
-*.wikipedia.org 
+.wikipedia.org 
