@@ -48,6 +48,9 @@ iptables -A INPUT -s 10.10.10.0/24 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state -
 # Permitir hacer ping hacia afuera
 iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
 
+#------------PROXY SQUID (en VPC B)---------------
+# Permitir salida al Proxy Squid
+iptables -A OUTPUT -s 0.0.0.0/0 -d 10.2.20.91 -p tcp --sport 1024:65535 --dport 3128 -m state --state NEW -j ACCEPT
 
 #------------POLITICAS POR DEFECTO---------------
 # Bloquear todo por defecto (DROP)

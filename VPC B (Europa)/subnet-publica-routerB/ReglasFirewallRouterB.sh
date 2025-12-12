@@ -48,8 +48,8 @@ iptables -A FORWARD -s 10.2.0.0/16 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
 
 #------------REGLAS DE WIREGUARD---------------
 ## Permitir tráfico UDP en el puerto 51820
-iptables -A INPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p udp --sport 1024:65535 --dport 51820 -m state --state NEW -j ACCEPT
-iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p udp --sport 51820 --dport 51820 -m state --state NEW -j ACCEPT
+iptables -A INPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p udp --dport 51820 -m state --state NEW -j ACCEPT
+iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p udp --dport 51820 -m state --state NEW -j ACCEPT
 
 ## Permitir tráfico en la interfaz del tunel (wg0)
 # Aceptamos todo lo que venga del túnel destinado al router o a forward
@@ -61,6 +61,22 @@ iptables -A OUTPUT -o wg0 -j ACCEPT
 iptables -A FORWARD -i wg0 -j ACCEPT
 # Permitir paso de paquetes desde la red interna hacia la interfaz wg0
 iptables -A FORWARD -o wg0 -j ACCEPT
+
+#------------REGLAS PARA PROXY SQUID---------------
+# FORWARD entre wg0 y la subred del proxy / VPC B
+# permitir tráfico desde VPC A (vía tunel) hacia la subred del proxy (10.2.20.0/24)
+iptables -A FORWARD -s 10.1.0.0/16 -d 10.2.20.0/24 -i wg0 -o ens5 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+# permitir retorno
+iptables -A FORWARD -s 10.2.20.0/24 -d 10.1.0.0/16 -i ens5 -o wg0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+
+# Permitir explícito del backend -> proxy (puerto 3128) a nivel FORWARD
+iptables -A FORWARD -s 10.1.0.0/16 -d 10.2.20.91 -p tcp --dport 3128 -i wg0 -j ACCEPT
+iptables -A FORWARD -s 10.2.20.91 -d 10.1.0.0/16 -p tcp --sport 3128 -o wg0 -j ACCEPT
+
+# Permitir que el host del proxy salga a Internet por HTTP/HTTPS (necesario)
+iptables -A OUTPUT -s 10.2.20.91 -o ens5 -p tcp --dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -s 10.2.20.91 -o ens5 -p tcp --dport 443 -m state --state NEW,ESTABLISHED -j ACCEPT
+
 
 #------------POLITICAS POR DEFECTO---------------
 # Bloquear todo por defecto (DROP)
