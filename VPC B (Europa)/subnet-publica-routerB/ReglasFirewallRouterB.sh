@@ -8,6 +8,8 @@ iptables -F OUTPUT
 iptables -F INPUT
 iptables -F FORWARD
 iptables -t nat -F POSTROUTING 
+iptables -t nat -F PREROUTING
+
 
 #------------LOOPBACK---------------
 # Permitir tráfico por loopback
@@ -42,7 +44,8 @@ iptables -A OUTPUT -s 0.0.0.0/0 -d 10.2.0.0/16 -p tcp --sport 1024:65535 --dport
 
 #------------REGLAS DE FORWARDING Y NAT---------------
 # MASQUERADE
-iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
+#iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
+
 # FORWARDING - Permitir forwarding desde las Subnets Privadas de VPC B (10.2.0.0/16)
 # iptables -A FORWARD -s 10.2.0.0/16 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
 
@@ -80,11 +83,15 @@ iptables -A OUTPUT -d 10.2.20.91 -p tcp --dport 3128 -m state --state NEW -j ACC
 iptables -A FORWARD -i wg0 -d 10.2.20.91 -p tcp --dport 3128 -j ACCEPT
 
 #------------REGLAS PARA ASTERISK (VOIP)---------------
+# Permitir SIP desde Internet hacia el Router (antes de DNAT)
+# iptables -A INPUT -i ens5 -p udp --dport 5060 -m state --state NEW -j ACCEPT
+# iptables -A INPUT -i ens5 -p udp --dport 10000:20000 -m state --state NEW -j ACCEPT
+
 ## DNAT (Port Forwarding) desde Internet hacia Asterisk
 # Redirigir SIP (5060) que llega a la interfaz pública hacia la IP privada de Asterisk
-iptables -t nat -A PREROUTING -i ens5 -p udp --dport 5060 -j DNAT --to-destination 10.2.10.152:5060
+iptables -t nat -A PREROUTING -i ens5 -p udp --dport 5060 -j DNAT --to-destination 10.2.10.152
 # Redirigir RTP (Audio 10000-20000) hacia la IP privada de Asterisk
-iptables -t nat -A PREROUTING -i ens5 -p udp --dport 10000:20000 -j DNAT --to-destination 10.2.10.152:10000-20000
+iptables -t nat -A PREROUTING -i ens5 -p udp --dport 10000:20000 -j DNAT --to-destination 10.2.10.152
 
 ## FORWARDING (Permitir el paso del tráfico redirigido y VPN)
 # Permitir tráfico SIP desde Internet (ya redirigido por DNAT) hacia Asterisk
@@ -97,6 +104,11 @@ iptables -A FORWARD -i wg0 -d 10.2.10.152 -p udp --dport 5060 -j ACCEPT
 # Permitir tráfico RTP desde VPC A (por túnel wg0) hacia Asterisk
 iptables -A FORWARD -i wg0 -d 10.2.10.152 -p udp --dport 10000:20000 -j ACCEPT
 
+## SNAT
+iptables -t nat -A POSTROUTING -d 10.2.10.152 -j SNAT --to-source 10.2.1.236
+
+# MASQUERADE
+iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
 #------------POLITICAS POR DEFECTO---------------
 # Bloquear todo por defecto (DROP)
 iptables -P INPUT DROP
