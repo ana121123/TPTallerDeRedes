@@ -79,6 +79,24 @@ iptables -A OUTPUT -d 10.2.20.91 -p tcp --dport 3128 -m state --state NEW -j ACC
 # FORWARD - Permitir explícitamente tráfico desde VPC A (vía wg0) hacia el Proxy (puerto 3128)
 iptables -A FORWARD -i wg0 -d 10.2.20.91 -p tcp --dport 3128 -j ACCEPT
 
+#------------REGLAS PARA ASTERISK (VOIP)---------------
+## DNAT (Port Forwarding) desde Internet hacia Asterisk
+# Redirigir SIP (5060) que llega a la interfaz pública hacia la IP privada de Asterisk
+iptables -t nat -A PREROUTING -i ens5 -p udp --dport 5060 -j DNAT --to-destination 10.2.10.152:5060
+# Redirigir RTP (Audio 10000-20000) hacia la IP privada de Asterisk
+iptables -t nat -A PREROUTING -i ens5 -p udp --dport 10000:20000 -j DNAT --to-destination 10.2.10.152:10000-20000
+
+## FORWARDING (Permitir el paso del tráfico redirigido y VPN)
+# Permitir tráfico SIP desde Internet (ya redirigido por DNAT) hacia Asterisk
+iptables -A FORWARD -d 10.2.10.152 -p udp --dport 5060 -m state --state NEW -j ACCEPT
+# Permitir tráfico RTP desde Internet (ya redirigido por DNAT) hacia Asterisk
+iptables -A FORWARD -d 10.2.10.152 -p udp --dport 10000:20000 -m state --state NEW -j ACCEPT
+
+# Permitir tráfico SIP desde VPC A (por túnel wg0) hacia Asterisk
+iptables -A FORWARD -i wg0 -d 10.2.10.152 -p udp --dport 5060 -j ACCEPT
+# Permitir tráfico RTP desde VPC A (por túnel wg0) hacia Asterisk
+iptables -A FORWARD -i wg0 -d 10.2.10.152 -p udp --dport 10000:20000 -j ACCEPT
+
 #------------POLITICAS POR DEFECTO---------------
 # Bloquear todo por defecto (DROP)
 iptables -P INPUT DROP
