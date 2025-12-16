@@ -100,6 +100,7 @@ iptables -A FORWARD -i wg0 -d 10.2.10.152/32 -p udp --dport 10000:20000 -j ACCEP
 iptables -t nat -A POSTROUTING -d 10.2.10.152/32 -j SNAT --to-source 10.2.1.236
 
 # MASQUERADE
+iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
 iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
 
 #------------POLITICAS POR DEFECTO---------------
