@@ -42,7 +42,7 @@ iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p tcp --sport 1024:65535 --dport 4
 
 #------------PING (ICMP)---------------
 # Permitir ping desde Router A
-# iptables -A INPUT -s 10.1.1.72/32 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
+iptables -A INPUT -s 10.1.1.72/32 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
 # Permitir ping desde la VPN
 iptables -A INPUT -s 10.10.10.0/24 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
 # Permitir hacer ping hacia afuera
