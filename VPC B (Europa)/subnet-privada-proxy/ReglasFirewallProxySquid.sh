@@ -41,7 +41,7 @@ iptables -A OUTPUT -p tcp --dport 53 -m state --state NEW -j ACCEPT
 iptables -A OUTPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT
 iptables -A OUTPUT -p tcp --dport 443 -m state --state NEW -j ACCEPT
 
-# ICMP - Hacer ping hacia afuera (troubleshooting)
+# ICMP - Hacer ping hacia afuera
 iptables -A OUTPUT -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
 
 #------------POLITICAS POR DEFECTO---------------

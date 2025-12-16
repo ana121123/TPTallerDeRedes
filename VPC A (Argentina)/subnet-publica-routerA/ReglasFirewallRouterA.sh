@@ -44,9 +44,7 @@ iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --st
 #SSH
 iptables -A OUTPUT -s 0.0.0.0/0 -d 10.1.0.0/16 -p tcp --sport 1024:65535 --dport 22 -m state --state NEW -j ACCEPT
 
-#------------REGLAS DE FORWARDING Y NAT---------------
-# MASQUERADE
-iptables -t nat -A POSTROUTING -o ens5 ! -d 10.1.0.0/16 -j MASQUERADE
+#------------REGLAS DE FORWARDING---------------
 # FORWARDING - Permitir forwarding desde la Subnet Privada backends (10.1.10.0/24)
 iptables -A FORWARD -i ens5 -o ens5 -s 10.1.10.0/24 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
 # FORWARDING - Permitir forwarding desde la Subnet Privada bdd (10.1.20.0/24)
@@ -70,6 +68,10 @@ iptables -A FORWARD -s 10.1.0.0/16 -o wg0 -m state --state NEW,ESTABLISHED,RELAT
 # De VPC B hacia 10.1.0.0/16 por wg0
 iptables -A FORWARD -d 10.1.0.0/16 -i wg0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 
+#------------REGLAS DE NAT---------------
+# MASQUERADE
+iptables -t nat -A POSTROUTING -o ens5 ! -d 10.1.0.0/16 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
 
 #------------POLITICAS POR DEFECTO---------------
 # Bloquear todo por defecto (DROP)
