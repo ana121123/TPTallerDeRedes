@@ -10,7 +10,6 @@ iptables -F FORWARD
 iptables -t nat -F POSTROUTING 
 iptables -t nat -F PREROUTING
 
-
 #------------LOOPBACK---------------
 # Permitir tráfico por loopback
 iptables -A INPUT -i lo -j ACCEPT
@@ -49,17 +48,6 @@ iptables -A OUTPUT -s 0.0.0.0/0 -d 10.2.0.0/16 -p tcp --sport 1024:65535 --dport
 # FORWARDING - Permitir forwarding desde las Subnets Privadas de VPC B (10.2.0.0/16)
 # iptables -A FORWARD -s 10.2.0.0/16 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
 
-##SEGURIDAD PROXY SQUID
-# 1. PERMITIR: VPC A (vía túnel) hacia el Proxy (IP 10.2.20.91)
-# Esta es la regla que permite pasar a los que vienen de Argentina
-iptables -A FORWARD -i wg0 -d 10.2.20.91 -p tcp --dport 3128 -j ACCEPT
-# 2. BLOQUEAR: Cualquier otro intento de ir al Proxy (Puerto 3128)
-# Esto evita que la VPC B (o cualquiera en la LAN) use el proxy.
-iptables -A FORWARD -d 10.2.20.91 -p tcp --dport 3128 -j DROP
-
-# Permitir forwarding general desde VPC B hacia Internet (Salvo al proxy que ya bloqueamos arriba)
-iptables -A FORWARD -s 10.2.0.0/16 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
-
 #------------REGLAS DE WIREGUARD---------------
 ## Permitir tráfico UDP en el puerto 51820
 iptables -A INPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p udp --dport 51820 -m state --state NEW -j ACCEPT
@@ -78,9 +66,13 @@ iptables -A FORWARD -o wg0 -j ACCEPT
 
 #------------REGLAS PARA PROXY SQUID---------------
 # Permitir que el Router B contacte al Proxy
-iptables -A OUTPUT -d 10.2.20.91 -p tcp --dport 3128 -m state --state NEW -j ACCEPT
-# FORWARD - Permitir explícitamente tráfico desde VPC A (vía wg0) hacia el Proxy (puerto 3128)
-iptables -A FORWARD -i wg0 -d 10.2.20.91 -p tcp --dport 3128 -j ACCEPT
+iptables -A OUTPUT -d 10.2.20.91/32 -p tcp --dport 3128 -m state --state NEW -j ACCEPT
+# Permitir VPC A (vía túnel) hacia el Proxy (IP 10.2.20.91)
+iptables -A FORWARD -i wg0 -d 10.2.20.91/32 -p tcp --dport 3128 -j ACCEPT
+# Bloquear cualquier otro intento de ir al Proxy (Puerto 3128) para evitar que la VPC B use el proxy.
+iptables -A FORWARD -d 10.2.20.91/32 -p tcp --dport 3128 -j DROP
+# Permitir forwarding general desde VPC B hacia Internet (Salvo al proxy que ya bloqueamos arriba)
+iptables -A FORWARD -s 10.2.0.0/16 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
 
 #------------REGLAS PARA ASTERISK (VOIP)---------------
 # Permitir SIP desde Internet hacia el Router (antes de DNAT)
@@ -89,26 +81,27 @@ iptables -A FORWARD -i wg0 -d 10.2.20.91 -p tcp --dport 3128 -j ACCEPT
 
 ## DNAT (Port Forwarding) desde Internet hacia Asterisk
 # Redirigir SIP (5060) que llega a la interfaz pública hacia la IP privada de Asterisk
-iptables -t nat -A PREROUTING -i ens5 -p udp --dport 5060 -j DNAT --to-destination 10.2.10.152
+iptables -t nat -A PREROUTING -i ens5 -p udp --dport 5060 -j DNAT --to-destination 10.2.10.152/32
 # Redirigir RTP (Audio 10000-20000) hacia la IP privada de Asterisk
-iptables -t nat -A PREROUTING -i ens5 -p udp --dport 10000:20000 -j DNAT --to-destination 10.2.10.152
+iptables -t nat -A PREROUTING -i ens5 -p udp --dport 10000:20000 -j DNAT --to-destination 10.2.10.152/32
 
 ## FORWARDING (Permitir el paso del tráfico redirigido y VPN)
 # Permitir tráfico SIP desde Internet (ya redirigido por DNAT) hacia Asterisk
-iptables -A FORWARD -d 10.2.10.152 -p udp --dport 5060 -m state --state NEW -j ACCEPT
+iptables -A FORWARD -d 10.2.10.152/32 -p udp --dport 5060 -m state --state NEW -j ACCEPT
 # Permitir tráfico RTP desde Internet (ya redirigido por DNAT) hacia Asterisk
-iptables -A FORWARD -d 10.2.10.152 -p udp --dport 10000:20000 -m state --state NEW -j ACCEPT
+iptables -A FORWARD -d 10.2.10.152/32 -p udp --dport 10000:20000 -m state --state NEW -j ACCEPT
 
 # Permitir tráfico SIP desde VPC A (por túnel wg0) hacia Asterisk
-iptables -A FORWARD -i wg0 -d 10.2.10.152 -p udp --dport 5060 -j ACCEPT
+iptables -A FORWARD -i wg0 -d 10.2.10.152/32 -p udp --dport 5060 -j ACCEPT
 # Permitir tráfico RTP desde VPC A (por túnel wg0) hacia Asterisk
-iptables -A FORWARD -i wg0 -d 10.2.10.152 -p udp --dport 10000:20000 -j ACCEPT
+iptables -A FORWARD -i wg0 -d 10.2.10.152/32 -p udp --dport 10000:20000 -j ACCEPT
 
 ## SNAT
-iptables -t nat -A POSTROUTING -d 10.2.10.152 -j SNAT --to-source 10.2.1.236
+iptables -t nat -A POSTROUTING -d 10.2.10.152/32 -j SNAT --to-source 10.2.1.236/32
 
 # MASQUERADE
 iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
+
 #------------POLITICAS POR DEFECTO---------------
 # Bloquear todo por defecto (DROP)
 iptables -P INPUT DROP
