@@ -81,9 +81,9 @@ iptables -A FORWARD -s 10.2.0.0/16 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
 
 ## DNAT (Port Forwarding) desde Internet hacia Asterisk
 # Redirigir SIP (5060) que llega a la interfaz pública hacia la IP privada de Asterisk
-iptables -t nat -A PREROUTING -i ens5 -p udp --dport 5060 -j DNAT --to-destination 10.2.10.152/32
+iptables -t nat -A PREROUTING -i ens5 -p udp --dport 5060 -j DNAT --to-destination 10.2.10.152
 # Redirigir RTP (Audio 10000-20000) hacia la IP privada de Asterisk
-iptables -t nat -A PREROUTING -i ens5 -p udp --dport 10000:20000 -j DNAT --to-destination 10.2.10.152/32
+iptables -t nat -A PREROUTING -i ens5 -p udp --dport 10000:20000 -j DNAT --to-destination 10.2.10.152
 
 ## FORWARDING (Permitir el paso del tráfico redirigido y VPN)
 # Permitir tráfico SIP desde Internet (ya redirigido por DNAT) hacia Asterisk
@@ -97,7 +97,7 @@ iptables -A FORWARD -i wg0 -d 10.2.10.152/32 -p udp --dport 5060 -j ACCEPT
 iptables -A FORWARD -i wg0 -d 10.2.10.152/32 -p udp --dport 10000:20000 -j ACCEPT
 
 ## SNAT
-iptables -t nat -A POSTROUTING -d 10.2.10.152/32 -j SNAT --to-source 10.2.1.236/32
+iptables -t nat -A POSTROUTING -d 10.2.10.152/32 -j SNAT --to-source 10.2.1.236
 
 # MASQUERADE
 iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE

@@ -30,8 +30,8 @@ iptables -A OUTPUT -d 10.2.1.236/32 -p udp --dport 10000:20000 -j ACCEPT
 
 #------------OTRA REGLAS---------------
 # ICMP
-iptables -A INPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
-iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
+iptables -A INPUT -s 10.2.1.236/32 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
+iptables -A OUTPUT -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
 # DNS 
 iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p udp --sport 1024:65535 --dport 53 -m state --state NEW -j ACCEPT
 iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p tcp --sport 1024:65535 --dport 53 -m state --state NEW -j ACCEPT
