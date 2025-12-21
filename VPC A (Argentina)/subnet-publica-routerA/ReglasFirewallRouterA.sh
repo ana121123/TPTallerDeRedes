@@ -69,6 +69,8 @@ iptables -A FORWARD -s 10.1.0.0/16 -o wg0 -m state --state NEW,ESTABLISHED,RELAT
 iptables -A FORWARD -d 10.1.0.0/16 -i wg0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 
 #------------REGLAS DE NAT---------------
+# Regla para Proxy Transparente HTTP (Puerto 80) -- hay que poner http_port 3128 intercept en el squid.conf
+# sudo iptables -t nat -A PREROUTING -i ens5 -s 10.1.10.0/24 -p tcp --dport 80 -j DNAT --to-destination 10.2.20.91:3128
 # MASQUERADE
 iptables -t nat -A POSTROUTING -o ens5 ! -d 10.1.0.0/16 -j MASQUERADE
 iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
