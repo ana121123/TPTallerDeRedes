@@ -1,9 +1,6 @@
 #!/bin/bash
 
 # Limpiar reglas
-iptables -P INPUT ACCEPT
-iptables -P OUTPUT ACCEPT
-iptables -P FORWARD ACCEPT
 iptables -F OUTPUT
 iptables -F INPUT
 iptables -F FORWARD
@@ -40,13 +37,6 @@ iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p tcp --sport 1024:65535 --dport 4
 iptables -A OUTPUT -s 0.0.0.0/0 -d 0.0.0.0/0 -p icmp --icmp-type 8 -m state --state NEW -j ACCEPT
 #SSH
 iptables -A OUTPUT -s 0.0.0.0/0 -d 10.2.0.0/16 -p tcp --sport 1024:65535 --dport 22 -m state --state NEW -j ACCEPT
-
-#------------REGLAS DE FORWARDING Y NAT---------------
-# MASQUERADE
-#iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
-
-# FORWARDING - Permitir forwarding desde las Subnets Privadas de VPC B (10.2.0.0/16)
-# iptables -A FORWARD -s 10.2.0.0/16 -d 0.0.0.0/0 -m state --state NEW -j ACCEPT
 
 #------------REGLAS DE WIREGUARD---------------
 ## Permitir tráfico UDP en el puerto 51820
